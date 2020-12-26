@@ -168,6 +168,6 @@ createDirectory(outputFolder,overwrite)
 paths = getPaths(numberOfClips)
 movToMp4(paths,tempFolder)
 convertToStills(paths,tempFolder,fps,overwrite)
-#input("you can now delete any non required images. \nsync the start of all the image sequences. \nthis can get spicy from here on out\npress enter to continue when you are ready: ")
+input("you can now delete any non required images. \nsync the start of all the image sequences. \nthis can get spicy from here on out\npress enter to continue when you are ready: ")
 compileImages(tempFolder,outputFolder,paths,fps,overwrite,concurrent)
 
