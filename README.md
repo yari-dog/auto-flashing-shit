@@ -11,3 +11,14 @@
 --t is temp destination uwu (default is temp/)
 
 --fo is force overwrite, default is off, got fed up with accepting overwrites so made it auto
+
+for example use:
+
+python3 /Users/yarimann/Desktop/tes1/autoflicker.py -n 2 -fps 24 -c 4 --fo
+
+and drag in ur two video files
+
+it will definitely give u errors if the video clips arent basically the same length but its ok its a feature
+
+depends on ffmpeg
+
