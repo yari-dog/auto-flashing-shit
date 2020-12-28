@@ -28,7 +28,7 @@ def getPaths(n):
 def createDirectory(directory,forceOverwrite):
     if forceOverwrite:
         deleteDirectory(directory)
-    if not (checkDirExists(directory)):     
+    if not (checkDirExists(directory)):   # You can swap this around to get rid of the 'not'.  
         print("creating directory ",directory)
         try:
             mkdirCommand = "mkdir " + str(directory)
@@ -46,7 +46,7 @@ def deleteDirectory(directory):
     if checkDirExists(directory):
         command = "rm -r " + directory
         print("removing ",directory," and all of its contents")
-        rmCommand = os.system(command)
+        rmCommand = os.system(command # linux specific? there's a couple ways to do this os-agnosticly, see https://stackoverflow.com/questions/185936/how-to-delete-the-contents-of-a-folder
         print("rm completed with code ",rmCommand)
         if not(rmCommand == 0):
             print("crashing")
@@ -56,31 +56,37 @@ def deleteDirectory(directory):
     
                     
 def movToMp4(paths,temp):
-    for i in range(0,len(paths)):
+    # You can just do `for path in paths` in python:
+    # if you need the number you can do enumerate()
+    for i, path in enumerate(paths):
         print("checking paths",i)
-        if (paths[i][-3:].lower() == "mov"):
-            print(paths[i]," requires converting...")
+        # Use this instead:
+        filename, file_extension = os.path.splitext(path)
+        if (file_extension == "mov"):
+            print(path," requires converting...")
             outputFileString = temp + "/" + str(i) + ".mp4"
-            commandString = "ffmpeg -i " + paths[i] + " -vcodec h264 -acodec mp2 " + outputFileString
+            commandString = "ffmpeg -i " + path + " -vcodec h264 -acodec mp2 " + outputFileString
             print("executing command: " + commandString)
             command = os.system(commandString)
             if ( command == 0):
                 print("Converted file ",str(i)," successfully!")
-                paths[i]=(temp+"/"+str(i)+".mp4")
-                print("new file path is: ",paths[i])
+                path=(temp+"/"+str(i)+".mp4")
+                print("new file path is: ",path)
             else:
                 print(command)
                 quit()
-        if not (paths[i][-3:].lower() == "mp4"):
+        if not (file_extension == "mp4"): # Why check at the end? if you want it to stop the program, you should probably put it up top.
             print("This filetype is not supported, please use mov or mp4 (it might be supported but i dont care enough to check, branch it bitch)")
+          
             
                 
 def convertToStills(paths,output,fps,overwrite):
-    for i in range(0,len(paths)):
+    # if you need the number you can do enumerate()
+    for i, path in enumerate(paths):
         outputDir = output + "/" + str(i)
         createDirectory(outputDir,overwrite)
-        outputFileDir= outputDir + "/%d.png"
-        convertCommand = "ffmpeg -i " + paths[i] + " -vf fps=" + str(fps) + " " + outputFileDir
+        outputFileDir= outputDir + "/%04d.png" # This change is needed, or your sorted() later on is gonna sort the files into 1,10,2,3...
+        convertCommand = "ffmpeg -i " + path + " -vf fps=" + str(fps) + " " + outputFileDir
         print("executing command: ",convertCommand)
         command = os.system(convertCommand)
         if command == 0:
@@ -93,14 +99,15 @@ def compileImages(tempFolder,outputFolder,paths,fps,overwrite,concurrent):
     tempfileArray = []
     print(tempfileArray,"\n")
     tempfileNumberArray = []
-    for i in range(0,len(paths)):
+    for i, path in enumerate(paths):
         workingDirectory = tempFolder + "/" + str(i)
-        workingList= os.listdir(workingDirectory)
+        workingList = os.listdir(workingDirectory)
         workingNumberList = []
         try:
-            for j in range(0,len(workingList)):
-                workingList[j]=int(workingList[j][:-4])
+            # Lets do a list comprehension, they're neat and the coolest thing about python ever.
+            workingList = [item[:-4] for item in workingList]
             workingList = sorted(workingList)
+            
             for j in range(0,len(workingList)):
                 workingNumberList.append(str(j+1) + ".png")
                 workingList[j]=workingDirectory + "/" + str(workingList[j]) + ".png"
@@ -115,7 +122,8 @@ def compileImages(tempFolder,outputFolder,paths,fps,overwrite,concurrent):
     outputfileNumberArray = []
     for i in range(0,n):
         j=i*concurrent
-        while (j >= 0) and (j < len(tempfileArray[i])):
+        # pretty sure (j >= 0) was always true?
+        while j < len(tempfileArray[i]):
             print("now j is ",j)
             for k in range(0,concurrent):
                 try:
@@ -160,7 +168,7 @@ def checkDirExists(directory):
 
 numberOfClips,fps,outputFolder,tempFolder,overwrite,concurrent = getArgs()
 print(numberOfClips,fps,outputFolder,tempFolder)
-createDirectory(tempFolder,overwrite)
+createDirectory(tempFolder,overwrite) #You can maybe use tempfile here, https://docs.python.org/3/library/tempfile.html (it'll make a temporary directory for you). Though might not be a good idea if you ask the user to delete stuff too.
 createDirectory(outputFolder,overwrite)
 
 
